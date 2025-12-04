@@ -8,6 +8,15 @@ import sys
 from pathlib import Path
 from typing import List
 
+# Windows 콘솔 인코딩 설정
+try:
+    if sys.platform == 'win32':
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+except Exception:
+    pass  # 인코딩 설정 실패 시 무시
+
 # src 모듈 import
 from file_scanner import FileScanner
 from metadata_reader import MetadataReader
@@ -18,6 +27,17 @@ from mover import FileMover
 from logger import FileLogger
 from config import get_config
 from utils import format_size, calculate_total_size, print_progress_bar, is_hidden_file
+
+
+def safe_print(message: str, **kwargs):
+    """안전한 print (이모지 인코딩 에러 방지)"""
+    try:
+        print(message, **kwargs)
+    except UnicodeEncodeError:
+        # 이모지 제거 후 재시도
+        import re
+        cleaned = re.sub(r'[^\x00-\x7F\uAC00-\uD7A3]+', '', message)
+        print(cleaned, **kwargs)
 
 
 class AutoFileSorter:

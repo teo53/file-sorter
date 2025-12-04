@@ -30,7 +30,7 @@
         "custom_rules": {}
     },
     "ui": {
-        "use_emoji": true,
+        "use_emoji": false,
         "verbose_mode": false,
         "auto_open_log": false
     }
