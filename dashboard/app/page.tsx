@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FileText, RotateCcw, Filter, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 import LogTable from './components/LogTable';
 import Filters from './components/Filters';
 import StatsCards from './components/StatsCards';
@@ -156,6 +157,28 @@ export default function Dashboard() {
             </header>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Quick Action - 파일 정리 실행 */}
+                <div className="mb-8">
+                    <Link
+                        href="/organize"
+                        className="block group bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-xl"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-bold mb-1">파일 정리 시작</h3>
+                                <p className="text-sm text-blue-100">
+                                    새로운 폴더를 선택하고 파일을 정리하세요
+                                </p>
+                            </div>
+                            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+
                 {/* 통계 카드 */}
                 {stats && <StatsCards stats={stats} />}
 

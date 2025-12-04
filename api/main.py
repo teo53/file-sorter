@@ -19,6 +19,13 @@ sys.path.insert(0, str(project_root / 'src'))
 
 from logger import FileLogger
 from rollback import FileRollback
+from file_scanner import FileScanner
+from categorizer import FileCategorizer
+from metadata_reader import MetadataReader
+from renamer import FileRenamer
+from mover import FileMover
+from config import get_config, Config
+import json
 
 
 app = FastAPI(title="파일 정리 시스템 API")
@@ -47,6 +54,19 @@ class BatchRollbackRequest(BaseModel):
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     count: Optional[int] = None
+
+class ScanRequest(BaseModel):
+    target_directory: str
+
+class PreviewRequest(BaseModel):
+    target_directory: str
+
+class ExecuteRequest(BaseModel):
+    target_directory: str
+    dry_run: bool = False
+
+class ConfigUpdate(BaseModel):
+    config: dict
 
 
 @app.get("/")
@@ -212,6 +232,127 @@ async def move_file_manually(request: MoveRequest):
             "new_path": new_path
         }
         
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# 새로운 API 엔드포인트
+
+@app.post("/api/scan")
+async def scan_directory(request: ScanRequest):
+    """폴더 스캔"""
+    try:
+        scanner = FileScanner(scan_directory=request.target_directory)
+        file_paths = scanner.scan_files(recursive=False)
+        
+        return {
+            "status": "success",
+            "file_count": len(file_paths),
+            "files": [
+                {
+                    "path": fp,
+                    "name": os.path.basename(fp),
+                    "size": os.path.getsize(fp) if os.path.exists(fp) else 0
+                }
+                for fp in file_paths[:100]  # 최대 100개만
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/preview")
+async def preview_organization(request: PreviewRequest):
+    """파일 정리 미리보기"""
+    try:
+        scanner = FileScanner(scan_directory=request.target_directory)
+        categorizer = FileCategorizer()
+        metadata_reader = MetadataReader()
+        renamer = FileRenamer()
+        
+        file_paths = scanner.scan_files(recursive=False)
+        preview_data = []
+        
+        for fp in file_paths[:50]:  # 최대 50개만 미리보기
+            try:
+                metadata = metadata_reader.read_metadata(fp)
+                category, rule, keywords = categorizer.categorize(fp, metadata)
+                
+                new_name = renamer.generate_new_name(
+                    category=category,
+                    keywords=keywords,
+                    date=metadata.get('creation_date', ''),
+                    original_name=os.path.basename(fp)
+                )
+                
+                preview_data.append({
+                    "original_name": os.path.basename(fp),
+                    "new_name": new_name,
+                    "category": category,
+                    "rule": rule,
+                    "size": os.path.getsize(fp)
+                })
+            except Exception:
+                continue
+        
+        return {
+            "status": "success",
+            "total_files": len(file_paths),
+            "preview": preview_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/execute")
+async def execute_organization(request: ExecuteRequest):
+    """파일 정리 실행"""
+    try:
+        from main import AutoFileSorter
+        
+        sorter = AutoFileSorter(
+            enable_ocr=False,
+            dry_run=request.dry_run,
+            auto_mode=True,
+            target_directory=request.target_directory
+        )
+        
+        # 백그라운드에서 실행하지 않고 즉시 실행
+        sorter.run()
+        
+        return {
+            "status": "success",
+            "message": "파일 정리가 완료되었습니다."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/config")
+async def get_config_data():
+    """설정 조회"""
+    try:
+        config = get_config()
+        return {
+            "status": "success",
+            "config": config.config
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/api/config")
+async def update_config_data(request: ConfigUpdate):
+    """설정 업데이트"""
+    try:
+        config = get_config()
+        config.config = request.config
+        config.save()
+        
+        return {
+            "status": "success",
+            "message": "설정이 저장되었습니다."
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
