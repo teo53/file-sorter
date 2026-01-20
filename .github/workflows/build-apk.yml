@@ -31,14 +31,18 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Create local.properties
+        working-directory: indie-fan-platform/mobile/android
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          echo "flutter.sdk=$FLUTTER_ROOT" >> local.properties
+          echo "flutter.buildMode=release" >> local.properties
+          echo "flutter.versionName=1.0.0" >> local.properties
+          echo "flutter.versionCode=1" >> local.properties
+
       - name: Get dependencies
         working-directory: indie-fan-platform/mobile
         run: flutter pub get
-
-      - name: Generate files (if needed)
-        working-directory: indie-fan-platform/mobile
-        run: |
-          flutter pub run build_runner build --delete-conflicting-outputs || true
 
       - name: Build APK (Debug)
         working-directory: indie-fan-platform/mobile
