@@ -33,17 +33,25 @@ jobs:
 
       - name: Verify Flutter installation
         run: |
+          echo "FLUTTER_ROOT: $FLUTTER_ROOT"
+          echo "ANDROID_HOME: $ANDROID_HOME"
           flutter --version
           flutter doctor -v
 
       - name: Create local.properties
         working-directory: indie-fan-platform/mobile/android
         run: |
+          # Get Flutter SDK path from flutter command if FLUTTER_ROOT is not set
+          if [ -z "$FLUTTER_ROOT" ]; then
+            FLUTTER_ROOT=$(dirname $(dirname $(which flutter)))
+          fi
+          echo "Using Flutter SDK at: $FLUTTER_ROOT"
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "flutter.sdk=$FLUTTER_ROOT" >> local.properties
           echo "flutter.buildMode=release" >> local.properties
           echo "flutter.versionName=1.0.0" >> local.properties
           echo "flutter.versionCode=1" >> local.properties
+          echo "--- local.properties contents ---"
           cat local.properties
 
       - name: Get dependencies
@@ -56,6 +64,8 @@ jobs:
 
       - name: Build APK (Debug)
         working-directory: indie-fan-platform/mobile
+        env:
+          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
         run: flutter build apk --debug --verbose
 
       - name: Build APK (Release)
