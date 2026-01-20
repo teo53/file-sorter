@@ -398,7 +398,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 class _EmptySubscriptions extends StatelessWidget {
   final VoidCallback onExplore;
 
-  const _EmptySubscriptions({required this.onExplore});
+  const _EmptySubscriptions({super.key, required this.onExplore});
 
   @override
   Widget build(BuildContext context) {

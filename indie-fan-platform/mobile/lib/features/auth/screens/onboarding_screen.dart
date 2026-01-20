@@ -163,7 +163,7 @@ class OnboardingItem {
 class _OnboardingPage extends StatelessWidget {
   final OnboardingItem item;
 
-  const _OnboardingPage({required this.item});
+  const _OnboardingPage({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {

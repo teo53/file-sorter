@@ -420,6 +420,7 @@ class _StatItem extends StatelessWidget {
   final String value;
 
   const _StatItem({
+    super.key,
     required this.label,
     required this.value,
   });
@@ -451,6 +452,7 @@ class _SocialButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _SocialButton({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,

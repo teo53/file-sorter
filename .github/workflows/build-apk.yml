@@ -21,7 +21,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Setup Flutter
@@ -29,74 +29,27 @@ jobs:
         with:
           flutter-version: '3.24.0'
           channel: 'stable'
-          cache: true
 
-      - name: Verify Flutter installation
+      - name: Check Flutter
         run: |
-          echo "FLUTTER_ROOT: $FLUTTER_ROOT"
-          echo "ANDROID_HOME: $ANDROID_HOME"
           flutter --version
-          flutter doctor -v
-
-      - name: Create local.properties
-        working-directory: indie-fan-platform/mobile/android
-        run: |
-          # Get Flutter SDK path from flutter command if FLUTTER_ROOT is not set
-          if [ -z "$FLUTTER_ROOT" ]; then
-            FLUTTER_ROOT=$(dirname $(dirname $(which flutter)))
-          fi
-          echo "Using Flutter SDK at: $FLUTTER_ROOT"
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          echo "flutter.sdk=$FLUTTER_ROOT" >> local.properties
-          echo "flutter.buildMode=release" >> local.properties
-          echo "flutter.versionName=1.0.0" >> local.properties
-          echo "flutter.versionCode=1" >> local.properties
-          echo "--- local.properties contents ---"
-          cat local.properties
+          flutter doctor
 
       - name: Get dependencies
         working-directory: indie-fan-platform/mobile
-        run: flutter pub get
+        run: flutter pub get --verbose
 
       - name: Analyze code
         working-directory: indie-fan-platform/mobile
-        run: flutter analyze --no-fatal-infos || true
+        run: flutter analyze --no-fatal-infos
 
-      - name: Build APK (Debug)
+      - name: Build APK
         working-directory: indie-fan-platform/mobile
-        env:
-          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
         run: flutter build apk --debug --verbose
 
-      - name: Build APK (Release)
-        working-directory: indie-fan-platform/mobile
-        run: flutter build apk --release
-
-      - name: List build outputs
-        run: |
-          ls -la indie-fan-platform/mobile/build/app/outputs/flutter-apk/ || echo "Build output not found"
-
-      - name: Upload Debug APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: pipo-debug-apk
+          name: pipo-apk
           path: indie-fan-platform/mobile/build/app/outputs/flutter-apk/app-debug.apk
-
-      - name: Upload Release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: pipo-release-apk
-          path: indie-fan-platform/mobile/build/app/outputs/flutter-apk/app-release.apk
-
-      - name: Create Release
-        if: github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ github.run_number }}
-          name: PIPO v1.0.0 Build ${{ github.run_number }}
-          files: |
-            indie-fan-platform/mobile/build/app/outputs/flutter-apk/app-release.apk
-          draft: false
-          prerelease: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if-no-files-found: error

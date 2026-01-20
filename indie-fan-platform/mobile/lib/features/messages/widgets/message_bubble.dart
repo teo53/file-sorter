@@ -117,6 +117,7 @@ class _TextBubble extends StatelessWidget {
   final bool isArtist;
 
   const _TextBubble({
+    super.key,
     required this.text,
     required this.isArtist,
   });
@@ -160,6 +161,7 @@ class _ImageBubble extends StatelessWidget {
   final bool isArtist;
 
   const _ImageBubble({
+    super.key,
     required this.imageUrl,
     required this.isArtist,
   });

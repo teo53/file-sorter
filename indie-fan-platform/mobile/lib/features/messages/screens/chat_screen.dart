@@ -375,7 +375,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 class _DateDivider extends StatelessWidget {
   final DateTime date;
 
-  const _DateDivider({required this.date});
+  const _DateDivider({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {
