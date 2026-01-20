@@ -42,7 +42,7 @@ android {
 
     defaultConfig {
         applicationId "app.pipo.mobile"
-        minSdk flutter.minSdkVersion
+        minSdk 26
         targetSdk flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
