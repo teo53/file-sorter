@@ -2,7 +2,7 @@ class AppConstants {
   AppConstants._();
 
   // App Info
-  static const String appName = 'IndieFan';
+  static const String appName = 'PIPO';
   static const String appVersion = '1.0.0';
 
   // API
