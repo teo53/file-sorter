@@ -239,6 +239,7 @@ class _SocialLoginButton extends StatelessWidget {
   final Color? borderColor;
 
   const _SocialLoginButton({
+    super.key,
     required this.onPressed,
     required this.icon,
     required this.label,

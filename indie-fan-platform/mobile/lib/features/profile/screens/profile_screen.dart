@@ -405,6 +405,7 @@ class _StatCard extends StatelessWidget {
   final Duration delay;
 
   const _StatCard({
+    super.key,
     required this.icon,
     required this.value,
     required this.label,

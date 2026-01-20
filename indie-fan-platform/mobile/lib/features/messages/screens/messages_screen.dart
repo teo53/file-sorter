@@ -124,6 +124,7 @@ class _ChatRoomTile extends StatelessWidget {
   final VoidCallback? onTap;
 
   const _ChatRoomTile({
+    super.key,
     required this.chatRoom,
     this.onTap,
   });
