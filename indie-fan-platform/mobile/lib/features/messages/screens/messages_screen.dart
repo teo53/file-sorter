@@ -93,7 +93,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                       ),
                     )
                   : state.chatRooms.isEmpty
-                      ? _EmptyMessages()
+                      ? const _EmptyMessages()
                       : ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           itemCount: state.chatRooms.length,
@@ -327,6 +327,8 @@ class _ChatRoomTile extends StatelessWidget {
 }
 
 class _EmptyMessages extends StatelessWidget {
+  const _EmptyMessages({super.key});
+
   @override
   Widget build(BuildContext context) {
     return FadeSlideTransition(
