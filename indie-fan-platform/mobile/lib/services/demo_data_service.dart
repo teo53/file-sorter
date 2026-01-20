@@ -9,9 +9,9 @@ class DemoDataService {
 
   static final User demoUser = User(
     id: 'user-001',
-    email: 'demo@indiefan.app',
+    email: 'demo@pipo.app',
     nickname: '팬이름',
-    profileImage: 'https://picsum.photos/seed/user001/200/200',
+    profileImage: null, // 기본 아이콘 사용
     role: UserRole.fan,
     createdAt: DateTime.now().subtract(const Duration(days: 120)),
   );

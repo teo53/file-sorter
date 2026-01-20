@@ -30,20 +30,20 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: IndieFanApp(),
+      child: PipoApp(),
     ),
   );
 }
 
-class IndieFanApp extends ConsumerWidget {
-  const IndieFanApp({super.key});
+class PipoApp extends ConsumerWidget {
+  const PipoApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'IndieFan',
+      title: 'PIPO',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
