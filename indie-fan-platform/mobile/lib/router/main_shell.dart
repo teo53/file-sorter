@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/theme/app_colors.dart';
 import '../features/messages/providers/messages_provider.dart';
-import 'app_router.dart';
+import 'app_routes.dart';
 
 class MainShell extends ConsumerStatefulWidget {
   final Widget child;

@@ -11,19 +11,8 @@ import '../features/home/screens/home_screen.dart';
 import '../features/messages/screens/chat_screen.dart';
 import '../features/messages/screens/messages_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
+import 'app_routes.dart';
 import 'main_shell.dart';
-
-/// 라우트 이름
-class AppRoutes {
-  static const String onboarding = '/onboarding';
-  static const String login = '/login';
-  static const String home = '/home';
-  static const String artists = '/artists';
-  static const String artistDetail = '/artists/:id';
-  static const String messages = '/messages';
-  static const String chat = '/messages/:id';
-  static const String profile = '/profile';
-}
 
 /// 라우터 Provider
 final appRouterProvider = Provider<GoRouter>((ref) {
