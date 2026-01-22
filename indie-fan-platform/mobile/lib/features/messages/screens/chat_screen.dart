@@ -216,6 +216,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
         ],
       ),
       actions: [
+        // 정산 요청 버튼
+        TextButton(
+          onPressed: () => context.push('/seisan/request'),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '정산 요청',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 12,
+                color: AppColors.primary,
+              ),
+            ],
+          ),
+        ),
         IconButton(
           icon: const Icon(Icons.more_vert),
           onPressed: () {
