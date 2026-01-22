@@ -20,8 +20,8 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   final _routes = [
     AppRoutes.home,
-    AppRoutes.artists,
     AppRoutes.messages,
+    AppRoutes.seisan,
     AppRoutes.profile,
   ];
 
@@ -77,18 +77,18 @@ class _MainShellState extends ConsumerState<MainShell> {
                   onTap: () => _onItemTapped(0),
                 ),
                 _NavItem(
-                  icon: Icons.explore_outlined,
-                  activeIcon: Icons.explore,
-                  label: '탐색',
+                  icon: Icons.chat_bubble_outline,
+                  activeIcon: Icons.chat_bubble,
+                  label: '채팅',
                   isSelected: _selectedIndex == 1,
+                  badge: unreadCount > 0 ? unreadCount : null,
                   onTap: () => _onItemTapped(1),
                 ),
                 _NavItem(
-                  icon: Icons.chat_bubble_outline,
-                  activeIcon: Icons.chat_bubble,
-                  label: '메시지',
+                  icon: Icons.card_giftcard_outlined,
+                  activeIcon: Icons.card_giftcard,
+                  label: '정산',
                   isSelected: _selectedIndex == 2,
-                  badge: unreadCount > 0 ? unreadCount : null,
                   onTap: () => _onItemTapped(2),
                 ),
                 _NavItem(

@@ -161,10 +161,122 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               ),
             ),
 
-            // 구독 중인 아티스트 섹션
+            // 스토리 레일 (상단)
+            SliverToBoxAdapter(
+              child: FadeSlideTransition(
+                delay: const Duration(milliseconds: 100),
+                child: _StoryRail(subscriptions: subscriptions),
+              ),
+            ),
+
+            // 정산 요청 CTA 카드
             SliverToBoxAdapter(
               child: FadeSlideTransition(
                 delay: const Duration(milliseconds: 150),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: ScaleOnTap(
+                    onTap: () => context.push('/seisan/request'),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primary.withOpacity(0.8),
+                            const Color(0xFF8B7CF7),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lock_outline,
+                                        size: 12,
+                                        color: Colors.white.withOpacity(0.9),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '비공개 1:1',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: Colors.white.withOpacity(0.9),
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '정산 요청하기',
+                                  style: AppTextStyles.h3.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '공개되지 않는 1:1 정산으로\n아이돌에게 특별한 메시지를 받아보세요',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: Colors.white.withOpacity(0.85),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              Icons.card_giftcard,
+                              color: Colors.white,
+                              size: 28,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // 구독 중인 아티스트 섹션
+            SliverToBoxAdapter(
+              child: FadeSlideTransition(
+                delay: const Duration(milliseconds: 200),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
                   child: Row(
@@ -395,10 +507,126 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 }
 
+class _StoryRail extends StatelessWidget {
+  final List<dynamic> subscriptions;
+
+  const _StoryRail({required this.subscriptions});
+
+  @override
+  Widget build(BuildContext context) {
+    // 데모 스토리 데이터
+    final stories = [
+      _StoryItem(
+        id: 'story_1',
+        name: '유나',
+        imageUrl: 'https://picsum.photos/seed/yuna/200/200',
+        hasNewStory: true,
+      ),
+      _StoryItem(
+        id: 'story_2',
+        name: '미나',
+        imageUrl: 'https://picsum.photos/seed/mina/200/200',
+        hasNewStory: true,
+      ),
+      _StoryItem(
+        id: 'story_3',
+        name: '사쿠라',
+        imageUrl: 'https://picsum.photos/seed/sakura/200/200',
+        hasNewStory: false,
+      ),
+    ];
+
+    return SizedBox(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: stories.length,
+        itemBuilder: (context, index) {
+          final story = stories[index];
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: ScaleOnTap(
+              onTap: () {
+                // TODO: 스토리 뷰어 (데모에서는 무시)
+              },
+              child: Column(
+                children: [
+                  Container(
+                    width: 68,
+                    height: 68,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: story.hasNewStory
+                          ? AppColors.primaryGradient
+                          : null,
+                      border: story.hasNewStory
+                          ? null
+                          : Border.all(
+                              color: AppColors.divider,
+                              width: 2,
+                            ),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.background,
+                          width: 2,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: Image.network(
+                          story.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: AppColors.shimmerBase,
+                            child: const Icon(Icons.person, size: 24),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    story.name,
+                    style: AppTextStyles.caption.copyWith(
+                      fontWeight: story.hasNewStory
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _StoryItem {
+  final String id;
+  final String name;
+  final String imageUrl;
+  final bool hasNewStory;
+
+  _StoryItem({
+    required this.id,
+    required this.name,
+    required this.imageUrl,
+    required this.hasNewStory,
+  });
+}
+
 class _EmptySubscriptions extends StatelessWidget {
   final VoidCallback onExplore;
 
-  const _EmptySubscriptions({super.key, required this.onExplore});
+  const _EmptySubscriptions({required this.onExplore});
 
   @override
   Widget build(BuildContext context) {
