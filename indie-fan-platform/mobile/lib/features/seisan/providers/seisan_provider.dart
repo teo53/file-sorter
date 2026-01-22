@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/seisan_model.dart';
+import '../../../core/exceptions/seisan_exception.dart';
 
 /// 정산 상태
 class SeisanState {
@@ -60,6 +61,9 @@ class SeisanNotifier extends StateNotifier<SeisanState> {
   }
 
   /// 정산 요청 생성
+  ///
+  /// [SeisanException.invalidAmount] - 유효하지 않은 금액
+  /// [SeisanException.textLimitExceeded] - 메시지 글자수 초과
   Future<SeisanRequest> createRequest({
     required String artistId,
     required String artistName,
@@ -70,7 +74,12 @@ class SeisanNotifier extends StateNotifier<SeisanState> {
   }) async {
     final tier = SeisanTier.fromAmount(amount);
     if (tier == null) {
-      throw Exception('유효하지 않은 금액입니다.');
+      throw SeisanException.invalidAmount(amount);
+    }
+
+    // 글자수 제한 검증
+    if (requestMessage.length > tier.textLimit) {
+      throw SeisanException.textLimitExceeded(tier.textLimit, requestMessage.length);
     }
 
     final request = SeisanRequest(
@@ -97,15 +106,32 @@ class SeisanNotifier extends StateNotifier<SeisanState> {
   }
 
   /// 아이돌: 정산 응답
+  ///
+  /// [SeisanException.notFound] - 요청을 찾을 수 없음
+  /// [SeisanException.alreadyResponded] - 이미 응답된 요청
+  /// [SeisanException.textLimitExceeded] - 응답 글자수 초과
   Future<void> respondToRequest({
     required String requestId,
     required String responseText,
     String? voiceUrl,
   }) async {
     final index = state.pendingQueue.indexWhere((r) => r.id == requestId);
-    if (index == -1) return;
+    if (index == -1) {
+      throw SeisanException.notFound(requestId);
+    }
 
     final request = state.pendingQueue[index];
+
+    // 이미 응답된 요청인지 확인
+    if (request.status == SeisanStatus.completed) {
+      throw SeisanException.alreadyResponded();
+    }
+
+    // 글자수 제한 검증
+    if (responseText.length > request.textLimit) {
+      throw SeisanException.textLimitExceeded(request.textLimit, responseText.length);
+    }
+
     final updatedRequest = request.copyWith(
       status: SeisanStatus.completed,
       responseText: responseText,

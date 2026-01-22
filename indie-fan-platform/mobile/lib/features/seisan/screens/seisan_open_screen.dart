@@ -61,11 +61,35 @@ class _SeisanOpenScreenState extends State<SeisanOpenScreen>
   final List<_FloatingHeart> _hearts = [];
   bool _heartsTriggered = false;
 
+  // 애니메이션 시퀀스 취소를 위한 플래그
+  bool _isDisposed = false;
+
+  // MediaQuery 캐싱
+  Size _screenSize = Size.zero;
+  bool _reduceMotion = false;
+
+  // 하트 ID 카운터 (중복 방지)
+  static int _heartIdCounter = 0;
+
   @override
   void initState() {
     super.initState();
     _initAnimations();
-    _startAnimationSequence();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // MediaQuery 캐싱
+    _screenSize = MediaQuery.of(context).size;
+    _reduceMotion = MediaQuery.of(context).disableAnimations;
+
+    // 첫 번째 didChangeDependencies에서 애니메이션 시작
+    if (_state == SeisanOpenState.preview &&
+        !_dimController.isAnimating &&
+        _dimController.value == 0) {
+      _startAnimationSequence();
+    }
   }
 
   void _initAnimations() {
@@ -134,20 +158,29 @@ class _SeisanOpenScreenState extends State<SeisanOpenScreen>
         curve: Curves.easeInOut,
       ),
     );
-    _portraitMotionController.repeat(reverse: true);
   }
 
   void _startAnimationSequence() async {
+    // 접근성: reduced motion 설정 시 애니메이션 건너뛰기
+    if (_reduceMotion) {
+      _skipToFinalState();
+      return;
+    }
+
     // t=0ms: 배경 dim + 포트레이트 시작
+    if (_isDisposed || !mounted) return;
     _dimController.forward();
     _portraitController.forward();
+    _portraitMotionController.repeat(reverse: true);
 
     // t=500ms: 도착 문구 표시
     await Future.delayed(const Duration(milliseconds: 500));
+    if (_isDisposed || !mounted) return;
     _copyBlockController.forward();
 
     // t=900ms: 하트 이펙트 (조건부)
     await Future.delayed(const Duration(milliseconds: 400));
+    if (_isDisposed || !mounted) return;
     if (widget.hasHeartEffect && !_heartsTriggered) {
       _triggerHeartEffect();
       _heartsTriggered = true;
@@ -155,52 +188,75 @@ class _SeisanOpenScreenState extends State<SeisanOpenScreen>
 
     // t=1200ms: 봉투 슬라이드업 + 열림
     await Future.delayed(const Duration(milliseconds: 300));
+    if (_isDisposed || !mounted) return;
     setState(() => _state = SeisanOpenState.reveal);
     _envelopeController.forward();
 
     // t=1800ms: 편지 내용 표시
     await Future.delayed(const Duration(milliseconds: 600));
+    if (_isDisposed || !mounted) return;
     _letterController.forward();
 
     // t=2200ms: 최종 상태
     await Future.delayed(const Duration(milliseconds: 400));
+    if (_isDisposed || !mounted) return;
     setState(() => _state = SeisanOpenState.read);
   }
 
+  /// 접근성을 위해 애니메이션 없이 최종 상태로 이동
+  void _skipToFinalState() {
+    _dimController.value = 1.0;
+    _portraitController.value = 1.0;
+    _copyBlockController.value = 1.0;
+    _envelopeController.value = 1.0;
+    _letterController.value = 1.0;
+    _portraitScaleAnimation = AlwaysStoppedAnimation(1.0);
+
+    if (mounted) {
+      setState(() => _state = SeisanOpenState.read);
+    }
+  }
+
   void _triggerHeartEffect() {
+    if (_isDisposed || !mounted) return;
+
     final random = Random();
     final heartCount = 2 + random.nextInt(4); // 2~5개
 
     for (int i = 0; i < heartCount; i++) {
       Future.delayed(Duration(milliseconds: i * 150), () {
-        if (mounted) {
-          setState(() {
-            _hearts.add(_FloatingHeart(
-              id: DateTime.now().millisecondsSinceEpoch + i,
-              startX: 0.2 + random.nextDouble() * 0.6, // 화면 20%~80% 위치
-              delay: Duration(milliseconds: random.nextInt(200)),
-            ));
-          });
-        }
+        if (_isDisposed || !mounted) return;
+        setState(() {
+          _hearts.add(_FloatingHeart(
+            id: _heartIdCounter++,
+            startX: 0.2 + random.nextDouble() * 0.6, // 화면 20%~80% 위치
+            delay: Duration(milliseconds: random.nextInt(200)),
+          ));
+        });
       });
     }
 
     // 3초 후 하트 제거
     Future.delayed(const Duration(milliseconds: 3500), () {
-      if (mounted) {
-        setState(() => _hearts.clear());
-      }
+      if (_isDisposed || !mounted) return;
+      setState(() => _hearts.clear());
     });
   }
 
   @override
   void dispose() {
+    _isDisposed = true;
+
+    // 모든 애니메이션 컨트롤러 정리
+    _portraitMotionController.stop(); // repeat 중인 컨트롤러는 먼저 stop
+
     _dimController.dispose();
     _portraitController.dispose();
     _copyBlockController.dispose();
     _envelopeController.dispose();
     _letterController.dispose();
     _portraitMotionController.dispose();
+
     super.dispose();
   }
 
@@ -251,57 +307,64 @@ class _SeisanOpenScreenState extends State<SeisanOpenScreen>
       top: 0,
       left: 0,
       right: 0,
-      height: MediaQuery.of(context).size.height * 0.45,
+      height: _screenSize.height * 0.45,
       child: AnimatedBuilder(
-        animation: Listenable.merge([_portraitAnimation, _portraitScaleAnimation]),
+        animation: _portraitAnimation,
         builder: (context, child) {
           return Opacity(
             opacity: _portraitAnimation.value,
-            child: Transform.scale(
-              scale: _portraitScaleAnimation.value,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // 아이돌 이미지
-                  CachedNetworkImage(
-                    imageUrl: widget.idolImageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
-                      color: AppColors.darkSurface,
-                    ),
-                    errorWidget: (_, __, ___) => Container(
-                      color: AppColors.darkSurface,
-                      child: Icon(
-                        Icons.person,
-                        size: 80,
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
-                  ),
-                  // 하단 그라데이션 오버레이
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 150,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.8),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            child: child,
           );
         },
+        child: AnimatedBuilder(
+          animation: _portraitScaleAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _portraitScaleAnimation.value,
+              child: child,
+            );
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 아이돌 이미지
+              CachedNetworkImage(
+                imageUrl: widget.idolImageUrl,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  color: AppColors.darkSurface,
+                ),
+                errorWidget: (_, __, ___) => Container(
+                  color: AppColors.darkSurface,
+                  child: Icon(
+                    Icons.person,
+                    size: 80,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ),
+              // 하단 그라데이션 오버레이
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 150,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -310,7 +373,12 @@ class _SeisanOpenScreenState extends State<SeisanOpenScreen>
     return Positioned.fill(
       child: IgnorePointer(
         child: Stack(
-          children: _hearts.map((heart) => _FloatingHeartWidget(heart: heart)).toList(),
+          children: _hearts
+              .map((heart) => _FloatingHeartWidget(
+                    heart: heart,
+                    screenSize: _screenSize,
+                  ))
+              .toList(),
         ),
       ),
     );
@@ -318,7 +386,7 @@ class _SeisanOpenScreenState extends State<SeisanOpenScreen>
 
   Widget _buildArrivalCopyBlock() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.38,
+      top: _screenSize.height * 0.38,
       left: 0,
       right: 0,
       child: AnimatedBuilder(
@@ -353,27 +421,33 @@ class _SeisanOpenScreenState extends State<SeisanOpenScreen>
 
   Widget _buildEnvelopeCard() {
     return Positioned(
-      top: MediaQuery.of(context).size.height * 0.42,
+      top: _screenSize.height * 0.42,
       left: 20,
       right: 20,
       bottom: 100,
       child: AnimatedBuilder(
-        animation: Listenable.merge([_envelopeSlideAnimation, _envelopeOpenAnimation]),
+        animation: _envelopeSlideAnimation,
         builder: (context, child) {
           return Transform.translate(
             offset: Offset(0, _envelopeSlideAnimation.value),
             child: Opacity(
               opacity: _state == SeisanOpenState.preview ? 0.0 : 1.0,
-              child: _EnvelopeCard(
-                openProgress: _envelopeOpenAnimation.value,
-                letterOpacity: _letterAnimation.value,
-                responseText: widget.responseText,
-                voiceUrl: widget.voiceUrl,
-                idolName: widget.idolName,
-              ),
+              child: child,
             ),
           );
         },
+        child: AnimatedBuilder(
+          animation: _letterAnimation,
+          builder: (context, child) {
+            return _EnvelopeCard(
+              openProgress: _envelopeOpenAnimation.value,
+              letterOpacity: _letterAnimation.value,
+              responseText: widget.responseText,
+              voiceUrl: widget.voiceUrl,
+              idolName: widget.idolName,
+            );
+          },
+        ),
       ),
     );
   }
@@ -533,12 +607,12 @@ class _EnvelopeCard extends StatelessWidget {
               child: Container(
                 height: 60,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      const Color(0xFF2A2A3E),
-                      const Color(0xFF1E1E2E),
+                      Color(0xFF2A2A3E),
+                      Color(0xFF1E1E2E),
                     ],
                   ),
                   borderRadius: const BorderRadius.vertical(
@@ -725,8 +799,12 @@ class _FloatingHeart {
 /// 떠다니는 하트 위젯
 class _FloatingHeartWidget extends StatefulWidget {
   final _FloatingHeart heart;
+  final Size screenSize;
 
-  const _FloatingHeartWidget({required this.heart});
+  const _FloatingHeartWidget({
+    required this.heart,
+    required this.screenSize,
+  });
 
   @override
   State<_FloatingHeartWidget> createState() => _FloatingHeartWidgetState();
@@ -738,6 +816,8 @@ class _FloatingHeartWidgetState extends State<_FloatingHeartWidget>
   late Animation<double> _yAnimation;
   late Animation<double> _opacityAnimation;
   late Animation<double> _scaleAnimation;
+
+  bool _isDisposed = false;
 
   @override
   void initState() {
@@ -767,7 +847,7 @@ class _FloatingHeartWidgetState extends State<_FloatingHeartWidget>
     );
 
     Future.delayed(widget.heart.delay, () {
-      if (mounted) {
+      if (!_isDisposed && mounted) {
         _controller.forward();
       }
     });
@@ -775,20 +855,19 @@ class _FloatingHeartWidgetState extends State<_FloatingHeartWidget>
 
   @override
   void dispose() {
+    _isDisposed = true;
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Positioned(
-          left: size.width * widget.heart.startX - 15,
-          top: size.height * _yAnimation.value,
+          left: widget.screenSize.width * widget.heart.startX - 15,
+          top: widget.screenSize.height * _yAnimation.value,
           child: Opacity(
             opacity: _opacityAnimation.value,
             child: Transform.scale(

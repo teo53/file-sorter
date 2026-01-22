@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/animations.dart';
+import '../../../core/utils/formatters.dart';
 import '../models/seisan_model.dart';
 import '../providers/seisan_provider.dart';
 
@@ -240,7 +241,7 @@ class _ArtistProfileSection extends StatelessWidget {
                   children: [
                     _InfoChip(
                       icon: Icons.attach_money,
-                      label: '${_formatAmount(request.amount)}원',
+                      label: request.amount.formatKRW(),
                       color: AppColors.primary,
                     ),
                     const SizedBox(width: 8),
@@ -265,13 +266,6 @@ class _ArtistProfileSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatAmount(int amount) {
-    return amount.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]},',
-        );
   }
 }
 
@@ -360,7 +354,7 @@ class _RequestSection extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                _formatDate(request.createdAt),
+                request.createdAt.formatFull(),
                 style: AppTextStyles.caption,
               ),
             ],
@@ -383,10 +377,6 @@ class _RequestSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
 
@@ -445,7 +435,7 @@ class _ResponseSection extends StatelessWidget {
               const Spacer(),
               if (request.respondedAt != null)
                 Text(
-                  _formatDate(request.respondedAt!),
+                  request.respondedAt!.formatFull(),
                   style: AppTextStyles.caption,
                 ),
             ],
@@ -498,10 +488,6 @@ class _ResponseSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
 

@@ -111,7 +111,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.artistDetail,
         builder: (context, state) {
-          final artistId = state.pathParameters['id']!;
+          final artistId = state.pathParameters['id'];
+          if (artistId == null) {
+            return const Scaffold(
+              body: Center(child: Text('잘못된 접근입니다')),
+            );
+          }
           return ArtistDetailScreen(artistId: artistId);
         },
       ),
@@ -120,7 +125,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.chat,
         builder: (context, state) {
-          final chatRoomId = state.pathParameters['id']!;
+          final chatRoomId = state.pathParameters['id'];
+          if (chatRoomId == null) {
+            return const Scaffold(
+              body: Center(child: Text('잘못된 접근입니다')),
+            );
+          }
           return ChatScreen(chatRoomId: chatRoomId);
         },
       ),
@@ -135,7 +145,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.seisanDetail,
         builder: (context, state) {
-          final seisanId = state.pathParameters['id']!;
+          final seisanId = state.pathParameters['id'];
+          if (seisanId == null) {
+            return const Scaffold(
+              body: Center(child: Text('잘못된 접근입니다')),
+            );
+          }
           return SeisanDetailScreen(seisanId: seisanId);
         },
       ),
@@ -144,15 +159,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.seisanOpen,
         builder: (context, state) {
-          final seisanId = state.pathParameters['id']!;
-          // 데모: Provider에서 정산 데이터 가져오기
-          // 실제로는 ref를 통해 가져와야 하지만, 데모용으로 하드코딩
-          return SeisanOpenScreen(
-            idolName: '유나',
-            idolImageUrl: 'https://picsum.photos/seed/yuna/400/600',
-            responseText: '정말 고마워요! ❤️ 다음 앨범 열심히 준비하고 있으니까 조금만 기다려주세요. 항상 응원해주셔서 힘이 나요!',
-            hasHeartEffect: true,
-            voiceUrl: null,
+          final seisanId = state.pathParameters['id'];
+          if (seisanId == null) {
+            return const Scaffold(
+              body: Center(child: Text('잘못된 접근입니다')),
+            );
+          }
+          return Consumer(
+            builder: (context, ref, _) {
+              final seisanState = ref.watch(seisanProvider);
+              final request = ref.read(seisanProvider.notifier).getRequestById(seisanId);
+
+              if (request == null) {
+                return const Scaffold(
+                  body: Center(child: Text('정산 요청을 찾을 수 없습니다')),
+                );
+              }
+
+              return SeisanOpenScreen(
+                idolName: request.artistName,
+                idolImageUrl: request.artistImage,
+                responseText: request.responseText ?? '',
+                hasHeartEffect: request.responseText?.contains(RegExp(r'[❤️💕💗💖🥰😍]')) ?? false,
+                voiceUrl: request.voiceUrl,
+              );
+            },
           );
         },
       ),
@@ -167,7 +198,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.seisanRespond,
         builder: (context, state) {
-          final requestId = state.pathParameters['id']!;
+          final requestId = state.pathParameters['id'];
+          if (requestId == null) {
+            return const Scaffold(
+              body: Center(child: Text('잘못된 접근입니다')),
+            );
+          }
           return SeisanRespondScreen(requestId: requestId);
         },
       ),

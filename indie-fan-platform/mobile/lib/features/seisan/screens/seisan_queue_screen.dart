@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/animations.dart';
+import '../../../core/utils/formatters.dart';
 import '../models/seisan_model.dart';
 import '../providers/seisan_provider.dart';
 
@@ -217,7 +218,7 @@ class _QueueCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _formatDate(request.createdAt),
+                        request.createdAt.formatRelative(),
                         style: AppTextStyles.caption,
                       ),
                     ],
@@ -234,7 +235,7 @@ class _QueueCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '${_formatAmount(request.amount)}원',
+                    request.amount.formatKRW(),
                     style: AppTextStyles.labelSmall.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
@@ -329,26 +330,6 @@ class _QueueCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
-
-    if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}분 전';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}시간 전';
-    } else {
-      return '${diff.inDays}일 전';
-    }
-  }
-
-  String _formatAmount(int amount) {
-    return amount.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]},',
-        );
   }
 }
 

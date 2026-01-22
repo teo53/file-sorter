@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/animations.dart';
+import '../../../core/utils/formatters.dart';
 import '../models/seisan_model.dart';
 import '../providers/seisan_provider.dart';
 
@@ -338,7 +339,7 @@ class _FanInfoCard extends StatelessWidget {
                 Row(
                   children: [
                     _SmallBadge(
-                      text: '${_formatAmount(request.amount)}원',
+                      text: request.amount.formatKRW(),
                       color: AppColors.primary,
                     ),
                     const SizedBox(width: 6),
@@ -362,13 +363,6 @@ class _FanInfoCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatAmount(int amount) {
-    return amount.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]},',
-        );
   }
 }
 
@@ -521,6 +515,11 @@ class _ResponseSection extends StatelessWidget {
             controller: controller,
             onChanged: (_) => onChanged(),
             maxLines: 8,
+            maxLength: textLimit,
+            buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
+              // 커스텀 카운터 사용 (상단에 이미 표시하므로 여기는 숨김)
+              return const SizedBox.shrink();
+            },
             decoration: InputDecoration(
               hintText: '팬에게 특별한 답장을 작성해주세요...',
               hintStyle: AppTextStyles.bodyMedium.copyWith(

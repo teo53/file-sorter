@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/animations.dart';
+import '../../../core/utils/formatters.dart';
 import '../models/seisan_model.dart';
 import '../providers/seisan_provider.dart';
 
@@ -485,7 +486,7 @@ class _AmountSelector extends StatelessWidget {
                       : null,
                 ),
                 child: Text(
-                  '${_formatAmount(tier.amount)}원',
+                  tier.amount.formatKRW(),
                   style: AppTextStyles.labelMedium.copyWith(
                     color: isSelected ? Colors.white : AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
@@ -532,13 +533,6 @@ class _AmountSelector extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _formatAmount(int amount) {
-    return amount.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]},',
-        );
   }
 }
 
@@ -732,7 +726,7 @@ class _SubmitSection extends StatelessWidget {
                 ),
               ),
               Text(
-                '${_formatAmount(totalAmount)}원',
+                totalAmount.formatKRW(),
                 style: AppTextStyles.h3.copyWith(
                   color: AppColors.primary,
                 ),
@@ -804,12 +798,5 @@ class _SubmitSection extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatAmount(int amount) {
-    return amount.toString().replaceAllMapped(
-          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-          (match) => '${match[1]},',
-        );
   }
 }
