@@ -44,6 +44,9 @@ extension DateFormatting on DateTime {
     }
   }
 
+  /// 상대적 시간 포맷 (alias for formatRelative)
+  String timeAgo() => formatRelative();
+
   /// 전체 날짜/시간 포맷 (예: "2024.01.15 14:30")
   String formatFull() {
     return '$year.${month.toString().padLeft(2, '0')}.${day.toString().padLeft(2, '0')} '

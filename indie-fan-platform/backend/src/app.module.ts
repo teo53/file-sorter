@@ -8,6 +8,8 @@ import { SubscriptionsModule } from './modules/subscriptions/subscriptions.modul
 import { MessagesModule } from './modules/messages/messages.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { SeisanModule } from './modules/seisan/seisan.module';
+import { StoriesModule } from './modules/stories/stories.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
     MessagesModule,
     NotificationsModule,
     PaymentsModule,
+    SeisanModule,
+    StoriesModule,
   ],
 })
 export class AppModule {}

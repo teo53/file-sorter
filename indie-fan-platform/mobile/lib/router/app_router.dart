@@ -18,6 +18,7 @@ import '../features/seisan/screens/seisan_open_screen.dart';
 import '../features/seisan/screens/seisan_queue_screen.dart';
 import '../features/seisan/screens/seisan_respond_screen.dart';
 import '../features/seisan/providers/seisan_provider.dart';
+import '../features/stories/screens/story_viewer_screen.dart';
 import 'app_routes.dart';
 import 'main_shell.dart';
 
@@ -205,6 +206,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             );
           }
           return SeisanRespondScreen(requestId: requestId);
+        },
+      ),
+
+      // 스토리 뷰어 (쉘 밖, 풀스크린)
+      GoRoute(
+        path: AppRoutes.stories,
+        builder: (context, state) {
+          final artistId = state.pathParameters['artistId'];
+          if (artistId == null) {
+            return const Scaffold(
+              body: Center(child: Text('잘못된 접근입니다')),
+            );
+          }
+          return StoryViewerScreen(artistId: artistId);
         },
       ),
     ],

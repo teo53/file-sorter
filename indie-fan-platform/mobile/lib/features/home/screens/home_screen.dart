@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/layout_constants.dart';
 import '../../../core/utils/animations.dart';
 import '../../artists/providers/artists_provider.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../messages/providers/messages_provider.dart';
+import '../../stories/providers/story_provider.dart';
 import '../providers/subscriptions_provider.dart';
 import '../widgets/subscription_card.dart';
 import '../widgets/recent_message_card.dart';
@@ -43,6 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ref.read(subscriptionsProvider.notifier).loadSubscriptions();
       ref.read(artistsProvider.notifier).loadArtists();
       ref.read(chatRoomsProvider.notifier).loadChatRooms();
+      ref.read(storiesProvider.notifier).loadStoryFeed();
     });
 
     _headerController.forward();
@@ -507,99 +511,99 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 }
 
-class _StoryRail extends StatelessWidget {
+class _StoryRail extends ConsumerWidget {
   final List<dynamic> subscriptions;
 
   const _StoryRail({required this.subscriptions});
 
   @override
-  Widget build(BuildContext context) {
-    // 데모 스토리 데이터
-    final stories = [
-      _StoryItem(
-        id: 'story_1',
-        name: '유나',
-        imageUrl: 'https://picsum.photos/seed/yuna/200/200',
-        hasNewStory: true,
-      ),
-      _StoryItem(
-        id: 'story_2',
-        name: '미나',
-        imageUrl: 'https://picsum.photos/seed/mina/200/200',
-        hasNewStory: true,
-      ),
-      _StoryItem(
-        id: 'story_3',
-        name: '사쿠라',
-        imageUrl: 'https://picsum.photos/seed/sakura/200/200',
-        hasNewStory: false,
-      ),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final storiesState = ref.watch(storiesProvider);
+    final storyGroups = storiesState.storyGroups;
+
+    if (storyGroups.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return SizedBox(
-      height: 100,
+      height: LayoutConstants.storyThumbnailSize + 32,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: stories.length,
+        itemCount: storyGroups.length,
         itemBuilder: (context, index) {
-          final story = stories[index];
+          final group = storyGroups[index];
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: ScaleOnTap(
               onTap: () {
-                // TODO: 스토리 뷰어 (데모에서는 무시)
+                // 스토리 뷰어로 이동
+                context.push('/stories/${group.artistId}');
               },
-              child: Column(
-                children: [
-                  Container(
-                    width: 68,
-                    height: 68,
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: story.hasNewStory
-                          ? AppColors.primaryGradient
-                          : null,
-                      border: story.hasNewStory
-                          ? null
-                          : Border.all(
-                              color: AppColors.divider,
-                              width: 2,
-                            ),
-                    ),
-                    child: Container(
+              child: SizedBox(
+                width: LayoutConstants.storyThumbnailSize + 8,
+                child: Column(
+                  children: [
+                    Container(
+                      width: LayoutConstants.storyThumbnailSize,
+                      height: LayoutConstants.storyThumbnailSize,
+                      padding: EdgeInsets.all(LayoutConstants.storyRingWidth),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.background,
-                          width: 2,
-                        ),
+                        gradient: group.hasUnviewedStory
+                            ? AppColors.storyRingGradient
+                            : null,
+                        border: group.hasUnviewedStory
+                            ? null
+                            : Border.all(
+                                color: AppColors.textTertiary,
+                                width: LayoutConstants.storyRingWidth,
+                              ),
                       ),
-                      child: ClipOval(
-                        child: Image.network(
-                          story.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: AppColors.shimmerBase,
-                            child: const Icon(Icons.person, size: 24),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.background,
+                            width: 2,
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: CachedNetworkImage(
+                            imageUrl: group.artistImage,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(
+                              color: AppColors.shimmerBase,
+                            ),
+                            errorWidget: (_, __, ___) => Container(
+                              color: AppColors.shimmerBase,
+                              child: Icon(
+                                Icons.person,
+                                size: 24,
+                                color: AppColors.textTertiary,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    story.name,
-                    style: AppTextStyles.caption.copyWith(
-                      fontWeight: story.hasNewStory
-                          ? FontWeight.w600
-                          : FontWeight.w400,
+                    const SizedBox(height: 6),
+                    Text(
+                      group.artistName,
+                      style: AppTextStyles.caption.copyWith(
+                        color: group.hasUnviewedStory
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
+                        fontWeight: group.hasUnviewedStory
+                            ? FontWeight.w500
+                            : FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -607,20 +611,6 @@ class _StoryRail extends StatelessWidget {
       ),
     );
   }
-}
-
-class _StoryItem {
-  final String id;
-  final String name;
-  final String imageUrl;
-  final bool hasNewStory;
-
-  _StoryItem({
-    required this.id,
-    required this.name,
-    required this.imageUrl,
-    required this.hasNewStory,
-  });
 }
 
 class _EmptySubscriptions extends StatelessWidget {

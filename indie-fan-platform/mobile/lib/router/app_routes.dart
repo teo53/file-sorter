@@ -17,4 +17,7 @@ class AppRoutes {
   static const String seisanOpen = '/seisan/:id/open';
   static const String seisanQueue = '/seisan/queue';
   static const String seisanRespond = '/seisan/respond/:id';
+
+  // Stories 관련 라우트
+  static const String stories = '/stories/:artistId';
 }
