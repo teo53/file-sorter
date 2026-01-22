@@ -41,3 +41,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated files
+/android/gradle/wrapper/gradle-wrapper.jar
+/android/app/src/main/java/
+/ios/Flutter/
+/ios/Runner/GeneratedPluginRegistrant.*
