@@ -1,7 +1,11 @@
 allprojects {
     repositories {
-        google()
-        mavenCentral()
+        // ONLY use local Maven repository (proxy workaround)
+        maven {
+            url "http://localhost:8888"
+            allowInsecureProtocol true
+        }
+        // Removed: google(), mavenCentral()
     }
 }
 

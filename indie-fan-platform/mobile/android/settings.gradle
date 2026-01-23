@@ -22,9 +22,12 @@ pluginManagement {
     includeBuild("${flutterSdkPath}/packages/flutter_tools/gradle")
 
     repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
+        // ONLY use local Maven repository (proxy workaround)
+        maven {
+            url "http://localhost:8888"
+            allowInsecureProtocol true
+        }
+        // Removed: google(), mavenCentral(), gradlePluginPortal()
     }
 }
 
