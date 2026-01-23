@@ -15,16 +15,16 @@ datasource db {
 // ============================================
 
 enum UserRole {
-  FAN       // 일반 팬 사용자
-  ARTIST    // 아티스트
-  ADMIN     // 관리자
+  FAN // 일반 팬 사용자
+  ARTIST // 아티스트
+  ADMIN // 관리자
 }
 
 enum UserStatus {
-  PENDING   // 승인 대기
-  ACTIVE    // 활성
+  PENDING // 승인 대기
+  ACTIVE // 활성
   SUSPENDED // 정지
-  DELETED   // 삭제됨
+  DELETED // 삭제됨
 }
 
 enum Gender {
@@ -35,40 +35,48 @@ enum Gender {
 }
 
 model User {
-  id                String      @id @default(uuid())
-  email             String      @unique
-  password          String?     // 소셜 로그인 시 null 가능
-  nickname          String
-  profileImage      String?
-  role              UserRole    @default(FAN)
-  status            UserStatus  @default(ACTIVE)
-  gender            Gender      @default(UNKNOWN)
-  birthDate         DateTime?
-  phoneNumber       String?
+  id           String     @id @default(uuid())
+  email        String     @unique
+  password     String? // 소셜 로그인 시 null 가능
+  nickname     String
+  profileImage String?
+  role         UserRole   @default(FAN)
+  status       UserStatus @default(ACTIVE)
+  gender       Gender     @default(UNKNOWN)
+  birthDate    DateTime?
+  phoneNumber  String?
 
   // 소셜 로그인 연동
-  kakaoId           String?     @unique
-  googleId          String?     @unique
-  appleId           String?     @unique
+  kakaoId  String? @unique
+  googleId String? @unique
+  appleId  String? @unique
 
   // FCM 푸시 토큰
-  fcmToken          String?
+  fcmToken String?
 
   // 설정
-  pushEnabled       Boolean     @default(true)
-  emailNotification Boolean     @default(true)
+  pushEnabled       Boolean @default(true)
+  emailNotification Boolean @default(true)
 
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  lastLoginAt       DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
 
   // Relations
-  artistProfile     ArtistProfile?
-  subscriptions     Subscription[]      // 팬으로서의 구독 목록
-  sentMessages      Message[]           @relation("FanMessages")
-  payments          Payment[]
-  notifications     Notification[]
-  deviceTokens      DeviceToken[]
+  artistProfile ArtistProfile?
+  subscriptions Subscription[] // 팬으로서의 구독 목록
+  sentMessages  Message[]      @relation("FanMessages")
+  payments      Payment[]
+  notifications Notification[]
+  deviceTokens  DeviceToken[]
+
+  // Seisan 관계
+  seisanThreads  SeisanThread[]  @relation("FanSeisanThreads")
+  seisanRequests SeisanRequest[] @relation("FanSeisanRequests")
+
+  // Story 관계
+  storyViews     StoryView[]
+  storyReactions StoryReaction[]
 
   @@index([email])
   @@index([kakaoId])
@@ -80,66 +88,73 @@ model User {
 // ============================================
 
 enum ArtistCategory {
-  IDOL          // 지하 아이돌
-  MAID          // 메이드 카페
-  COSPLAYER     // 코스어
-  STREAMER      // 인터넷 방송인
-  OTHER         // 기타
+  IDOL // 지하 아이돌
+  MAID // 메이드 카페
+  COSPLAYER // 코스어
+  STREAMER // 인터넷 방송인
+  OTHER // 기타
 }
 
 enum ArtistStatus {
-  PENDING       // 승인 대기
-  APPROVED      // 승인됨
-  REJECTED      // 거절됨
-  SUSPENDED     // 활동 정지
+  PENDING // 승인 대기
+  APPROVED // 승인됨
+  REJECTED // 거절됨
+  SUSPENDED // 활동 정지
 }
 
 model ArtistProfile {
-  id                  String          @id @default(uuid())
-  userId              String          @unique
-  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // 기본 정보
-  stageName           String          // 활동명
-  realName            String?         // 실명 (비공개)
-  bio                 String?         // 자기소개
-  category            ArtistCategory  @default(OTHER)
-  status              ArtistStatus    @default(PENDING)
+  stageName String // 활동명
+  realName  String? // 실명 (비공개)
+  bio       String? // 자기소개
+  category  ArtistCategory @default(OTHER)
+  status    ArtistStatus   @default(PENDING)
 
   // 프로필 미디어
-  profileImage        String?
-  coverImage          String?
+  profileImage String?
+  coverImage   String?
 
   // SNS 연동
-  twitterHandle       String?
-  instagramHandle     String?
-  youtubeChannel      String?
-  tiktokHandle        String?
+  twitterHandle   String?
+  instagramHandle String?
+  youtubeChannel  String?
+  tiktokHandle    String?
 
   // 구독 설정
-  subscriptionPrice   Int             @default(4900)  // 월 구독료 (원)
-  welcomeMessage      String?         // 구독 시 자동 발송 메시지
+  subscriptionPrice Int     @default(4900) // 월 구독료 (원)
+  welcomeMessage    String? // 구독 시 자동 발송 메시지
 
   // 팬덤 정보
-  fandomName          String?         // 팬덤명
+  fandomName String? // 팬덤명
 
   // 통계
-  subscriberCount     Int             @default(0)
-  totalMessageCount   Int             @default(0)
+  subscriberCount   Int @default(0)
+  totalMessageCount Int @default(0)
 
   // 정산 정보
-  bankName            String?
-  bankAccount         String?
-  bankAccountHolder   String?
+  bankName          String?
+  bankAccount       String?
+  bankAccountHolder String?
 
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  approvedAt          DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  approvedAt DateTime?
 
   // Relations
-  subscriptions       Subscription[]
-  messages            Message[]       @relation("ArtistMessages")
-  mediaContents       MediaContent[]
+  subscriptions Subscription[]
+  messages      Message[]      @relation("ArtistMessages")
+  mediaContents MediaContent[]
+
+  // Seisan 관계
+  seisanThreads  SeisanThread[]
+  seisanRequests SeisanRequest[]
+
+  // Story 관계
+  stories Story[]
 
   @@index([stageName])
   @@index([category])
@@ -151,46 +166,46 @@ model ArtistProfile {
 // ============================================
 
 enum SubscriptionStatus {
-  ACTIVE      // 활성
-  CANCELLED   // 취소됨
-  EXPIRED     // 만료됨
-  PAUSED      // 일시정지
+  ACTIVE // 활성
+  CANCELLED // 취소됨
+  EXPIRED // 만료됨
+  PAUSED // 일시정지
 }
 
 model Subscription {
-  id                String              @id @default(uuid())
+  id String @id @default(uuid())
 
   // 관계
-  fanId             String
-  fan               User                @relation(fields: [fanId], references: [id], onDelete: Cascade)
-  artistProfileId   String
-  artistProfile     ArtistProfile       @relation(fields: [artistProfileId], references: [id], onDelete: Cascade)
+  fanId           String
+  fan             User          @relation(fields: [fanId], references: [id], onDelete: Cascade)
+  artistProfileId String
+  artistProfile   ArtistProfile @relation(fields: [artistProfileId], references: [id], onDelete: Cascade)
 
   // 구독 정보
-  status            SubscriptionStatus  @default(ACTIVE)
-  price             Int                 // 구독 시 가격
+  status SubscriptionStatus @default(ACTIVE)
+  price  Int // 구독 시 가격
 
   // 기간
-  startDate         DateTime            @default(now())
-  endDate           DateTime?
-  renewalDate       DateTime?
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  renewalDate DateTime?
 
   // 구독 기념일 카운트
-  subscribedDays    Int                 @default(0)
+  subscribedDays Int @default(0)
 
   // 결제 연동
   stripeSubscriptionId String?
 
   // 자동 갱신
-  autoRenewal       Boolean             @default(true)
+  autoRenewal Boolean @default(true)
 
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  cancelledAt       DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  cancelledAt DateTime?
 
   // Relations
-  chatRoom          ChatRoom?
-  payments          Payment[]
+  chatRoom ChatRoom?
+  payments Payment[]
 
   @@unique([fanId, artistProfileId])
   @@index([fanId])
@@ -203,23 +218,23 @@ model Subscription {
 // ============================================
 
 model ChatRoom {
-  id                String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  subscriptionId    String        @unique
-  subscription      Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  subscriptionId String       @unique
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   // 읽음 상태
-  fanLastReadAt     DateTime?
-  artistLastReadAt  DateTime?
+  fanLastReadAt    DateTime?
+  artistLastReadAt DateTime?
 
   // 팬 답장 제한
-  fanReplyCount     Int           @default(0)  // 현재 메시지에 대한 답장 수
+  fanReplyCount Int @default(0) // 현재 메시지에 대한 답장 수
 
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  messages          Message[]
+  messages Message[]
 }
 
 enum MessageType {
@@ -231,45 +246,45 @@ enum MessageType {
 }
 
 enum MessageSender {
-  ARTIST    // 아티스트가 보낸 메시지
-  FAN       // 팬이 보낸 답장
-  SYSTEM    // 시스템 메시지 (환영 메시지 등)
+  ARTIST // 아티스트가 보낸 메시지
+  FAN // 팬이 보낸 답장
+  SYSTEM // 시스템 메시지 (환영 메시지 등)
 }
 
 model Message {
-  id                String          @id @default(uuid())
+  id String @id @default(uuid())
 
   // 채팅방
-  chatRoomId        String
-  chatRoom          ChatRoom        @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 
   // 발신자 정보
-  senderType        MessageSender
-  artistProfileId   String?
-  artistProfile     ArtistProfile?  @relation("ArtistMessages", fields: [artistProfileId], references: [id])
-  fanUserId         String?
-  fanUser           User?           @relation("FanMessages", fields: [fanUserId], references: [id])
+  senderType      MessageSender
+  artistProfileId String?
+  artistProfile   ArtistProfile? @relation("ArtistMessages", fields: [artistProfileId], references: [id])
+  fanUserId       String?
+  fanUser         User?          @relation("FanMessages", fields: [fanUserId], references: [id])
 
   // 메시지 내용
-  type              MessageType     @default(TEXT)
-  content           String          // 텍스트 또는 미디어 URL
+  type    MessageType @default(TEXT)
+  content String // 텍스트 또는 미디어 URL
 
   // 개인화 (팬 닉네임 치환 전 원본)
-  originalContent   String?
+  originalContent String?
 
   // 브로드캐스트 메시지 ID (아티스트가 전체에게 보낸 원본 메시지)
-  broadcastId       String?
+  broadcastId String?
 
   // 답장 대상 메시지
-  replyToId         String?
-  replyTo           Message?        @relation("MessageReplies", fields: [replyToId], references: [id])
-  replies           Message[]       @relation("MessageReplies")
+  replyToId String?
+  replyTo   Message?  @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies   Message[] @relation("MessageReplies")
 
   // 읽음 상태
-  isRead            Boolean         @default(false)
-  readAt            DateTime?
+  isRead Boolean   @default(false)
+  readAt DateTime?
 
-  createdAt         DateTime        @default(now())
+  createdAt DateTime @default(now())
 
   @@index([chatRoomId])
   @@index([broadcastId])
@@ -278,19 +293,19 @@ model Message {
 
 // 아티스트 브로드캐스트 메시지 (전체 발송 원본)
 model BroadcastMessage {
-  id                String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  artistProfileId   String
+  artistProfileId String
 
-  type              MessageType     @default(TEXT)
-  content           String
+  type    MessageType @default(TEXT)
+  content String
 
   // 발송 통계
-  recipientCount    Int             @default(0)
-  readCount         Int             @default(0)
-  replyCount        Int             @default(0)
+  recipientCount Int @default(0)
+  readCount      Int @default(0)
+  replyCount     Int @default(0)
 
-  createdAt         DateTime        @default(now())
+  createdAt DateTime @default(now())
 
   @@index([artistProfileId])
   @@index([createdAt])
@@ -307,26 +322,26 @@ enum MediaType {
 }
 
 model MediaContent {
-  id                String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  artistProfileId   String
-  artistProfile     ArtistProfile @relation(fields: [artistProfileId], references: [id], onDelete: Cascade)
+  artistProfileId String
+  artistProfile   ArtistProfile @relation(fields: [artistProfileId], references: [id], onDelete: Cascade)
 
-  type              MediaType
-  url               String
-  thumbnailUrl      String?
+  type         MediaType
+  url          String
+  thumbnailUrl String?
 
   // 메타데이터
-  fileName          String?
-  fileSize          Int?
-  duration          Int?          // 영상/음성 길이 (초)
-  width             Int?
-  height            Int?
+  fileName String?
+  fileSize Int?
+  duration Int? // 영상/음성 길이 (초)
+  width    Int?
+  height   Int?
 
   // 공개 설정
-  isPublic          Boolean       @default(false)  // 비구독자도 볼 수 있는지
+  isPublic Boolean @default(false) // 비구독자도 볼 수 있는지
 
-  createdAt         DateTime      @default(now())
+  createdAt DateTime @default(now())
 
   @@index([artistProfileId])
 }
@@ -344,40 +359,177 @@ enum PaymentStatus {
 }
 
 enum PaymentType {
-  SUBSCRIPTION        // 구독 결제
+  SUBSCRIPTION // 구독 결제
   SUBSCRIPTION_RENEWAL // 구독 갱신
-  GIFT                // 선물/후원
+  GIFT // 선물/후원
+  SEISAN // 정산 결제
+}
+
+// ============================================
+// 정산 (Seisan) 관련
+// ============================================
+
+enum SeisanStatus {
+  PENDING // 대기 중 (아이돌 응답 전)
+  RESPONDED // 응답 완료
+  EXPIRED // 만료됨
+}
+
+model SeisanThread {
+  id              String   @id @default(uuid())
+  fanId           String
+  artistProfileId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  fan           User            @relation("FanSeisanThreads", fields: [fanId], references: [id], onDelete: Cascade)
+  artistProfile ArtistProfile   @relation(fields: [artistProfileId], references: [id], onDelete: Cascade)
+  requests      SeisanRequest[]
+
+  @@unique([fanId, artistProfileId])
+  @@index([fanId])
+  @@index([artistProfileId])
+}
+
+model SeisanRequest {
+  id              String @id @default(uuid())
+  threadId        String
+  fanId           String
+  artistProfileId String
+
+  // 결제 정보
+  offerAmount   Int // 결제 금액 (원)
+  textLimit     Int // 응답 글자 수 제한
+  voiceOption   Boolean @default(false)
+  voiceLimitSec Int? // 음성 제한 시간 (초)
+
+  // 요청 내용
+  requestMessage String  @db.Text
+  chekiImageUrl  String? // 첨부 이미지 (optional)
+
+  // 응답
+  status           SeisanStatus @default(PENDING)
+  responseText     String?      @db.Text
+  responseVoiceUrl String?
+
+  // 타임스탬프
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+  expiresAt   DateTime? // 만료 시간 (72시간)
+
+  // Relations
+  thread        SeisanThread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  fan           User          @relation("FanSeisanRequests", fields: [fanId], references: [id])
+  artistProfile ArtistProfile @relation(fields: [artistProfileId], references: [id])
+  payment       Payment?
+
+  @@index([threadId])
+  @@index([artistProfileId, status])
+  @@index([fanId])
+}
+
+// ============================================
+// 스토리 관련
+// ============================================
+
+enum StoryMediaType {
+  IMAGE
+  VIDEO
+}
+
+enum StoryVisibility {
+  PUBLIC // 모든 사용자
+  SUBSCRIBERS // 구독자만
+}
+
+model Story {
+  id              String @id @default(uuid())
+  artistProfileId String
+
+  // 미디어
+  mediaType    StoryMediaType
+  mediaUrl     String
+  thumbnailUrl String?
+  textOverlay  String? // 텍스트 오버레이
+
+  // 공개 설정
+  visibility StoryVisibility @default(PUBLIC)
+
+  // 만료
+  expiresAt DateTime // 24시간 후
+  createdAt DateTime @default(now())
+
+  // Relations
+  artistProfile ArtistProfile   @relation(fields: [artistProfileId], references: [id], onDelete: Cascade)
+  views         StoryView[]
+  reactions     StoryReaction[]
+
+  @@index([artistProfileId])
+  @@index([expiresAt])
+  @@index([visibility])
+}
+
+model StoryView {
+  id       String   @id @default(uuid())
+  storyId  String
+  userId   String
+  viewedAt DateTime @default(now())
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@index([storyId])
+  @@index([userId])
+}
+
+model StoryReaction {
+  id        String   @id @default(uuid())
+  storyId   String
+  userId    String
+  emoji     String // 이모지 문자
+  createdAt DateTime @default(now())
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@index([storyId])
 }
 
 model Payment {
-  id                String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId            String
-  user              User            @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  subscriptionId    String?
-  subscription      Subscription?   @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
 
-  type              PaymentType
-  status            PaymentStatus   @default(PENDING)
+  // Seisan 결제 연결
+  seisanRequestId String?        @unique
+  seisanRequest   SeisanRequest? @relation(fields: [seisanRequestId], references: [id])
 
-  amount            Int             // 결제 금액 (원)
-  currency          String          @default("KRW")
+  type   PaymentType
+  status PaymentStatus @default(PENDING)
+
+  amount   Int // 결제 금액 (원)
+  currency String @default("KRW")
 
   // 결제 수단 정보
-  paymentMethod     String?         // stripe, iap_ios, iap_android
-  stripePaymentId   String?
-  iapTransactionId  String?
-  iapReceipt        String?
+  paymentMethod    String? // stripe, iap_ios, iap_android
+  stripePaymentId  String?
+  iapTransactionId String?
+  iapReceipt       String?
 
   // 정산 정보
-  platformFee       Int?            // 플랫폼 수수료
-  artistRevenue     Int?            // 아티스트 수익
-  isSettled         Boolean         @default(false)
-  settledAt         DateTime?
+  platformFee   Int? // 플랫폼 수수료
+  artistRevenue Int? // 아티스트 수익
+  isSettled     Boolean   @default(false)
+  settledAt     DateTime?
 
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([subscriptionId])
@@ -386,27 +538,27 @@ model Payment {
 
 // 아티스트 정산 내역
 model Settlement {
-  id                String          @id @default(uuid())
+  id String @id @default(uuid())
 
-  artistProfileId   String
+  artistProfileId String
 
   // 정산 기간
-  periodStart       DateTime
-  periodEnd         DateTime
+  periodStart DateTime
+  periodEnd   DateTime
 
   // 금액
-  totalRevenue      Int             // 총 수익
-  platformFee       Int             // 플랫폼 수수료
-  netAmount         Int             // 순 정산금
+  totalRevenue Int // 총 수익
+  platformFee  Int // 플랫폼 수수료
+  netAmount    Int // 순 정산금
 
   // 상태
-  status            String          @default("PENDING")  // PENDING, PROCESSING, COMPLETED
+  status String @default("PENDING") // PENDING, PROCESSING, COMPLETED
 
   // 송금 정보
   transferredAt     DateTime?
   transferReference String?
 
-  createdAt         DateTime        @default(now())
+  createdAt DateTime @default(now())
 
   @@index([artistProfileId])
 }
@@ -416,28 +568,28 @@ model Settlement {
 // ============================================
 
 enum NotificationType {
-  NEW_MESSAGE       // 새 메시지
-  NEW_SUBSCRIBER    // 새 구독자
+  NEW_MESSAGE // 새 메시지
+  NEW_SUBSCRIBER // 새 구독자
   SUBSCRIPTION_EXPIRING // 구독 만료 예정
-  ANNIVERSARY       // 구독 기념일
-  SYSTEM            // 시스템 공지
+  ANNIVERSARY // 구독 기념일
+  SYSTEM // 시스템 공지
 }
 
 model Notification {
-  id                String            @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId            String
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type              NotificationType
-  title             String
-  body              String
-  data              Json?             // 추가 데이터
+  type  NotificationType
+  title String
+  body  String
+  data  Json? // 추가 데이터
 
-  isRead            Boolean           @default(false)
-  readAt            DateTime?
+  isRead Boolean   @default(false)
+  readAt DateTime?
 
-  createdAt         DateTime          @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([isRead])
@@ -445,18 +597,18 @@ model Notification {
 
 // 디바이스 토큰 (푸시 알림용)
 model DeviceToken {
-  id                String    @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId            String
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  token             String
-  platform          String    // ios, android, web
+  token    String
+  platform String // ios, android, web
 
-  isActive          Boolean   @default(true)
+  isActive Boolean @default(true)
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, token])
   @@index([userId])
@@ -474,32 +626,32 @@ enum ReportStatus {
 }
 
 model Report {
-  id                String        @id @default(uuid())
+  id String @id @default(uuid())
 
-  reporterId        String
-  targetUserId      String?
-  targetMessageId   String?
+  reporterId      String
+  targetUserId    String?
+  targetMessageId String?
 
-  reason            String
-  description       String?
+  reason      String
+  description String?
 
-  status            ReportStatus  @default(PENDING)
-  reviewedBy        String?
-  reviewNote        String?
+  status     ReportStatus @default(PENDING)
+  reviewedBy String?
+  reviewNote String?
 
-  createdAt         DateTime      @default(now())
-  reviewedAt        DateTime?
+  createdAt  DateTime  @default(now())
+  reviewedAt DateTime?
 
   @@index([status])
 }
 
 model BlockedUser {
-  id                String    @id @default(uuid())
+  id String @id @default(uuid())
 
-  blockerId         String
-  blockedId         String
+  blockerId String
+  blockedId String
 
-  createdAt         DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([blockerId, blockedId])
   @@index([blockerId])
